@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Footdle</title>
+
+    <link rel="stylesheet" href="style.css?v=2">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+</head>
+
+<body>
+
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
+    <button id="settingsToggle" class="sound-toggle" onclick="openSettingsModal()">⚙️</button>
+
+    <!-- ========================= -->
+    <!-- HOW TO PLAY MODAL -->
+    <!-- ========================= -->
+
+    <div id="howToPlayModal" class="modal-overlay" onclick="closeHowToPlay(event)">
+
+        <div class="modal-box">
+
+            <button class="modal-close" onclick="closeHowToPlay(event)">✕</button>
+
+            <h2>❓ HOW TO PLAY</h2>
+
+            <ul class="howto-list">
+                <li><strong>Guess the mystery footballer</strong> using the search box — pick a name from the suggestions.</li>
+                <li>Each guess reveals clues: <span class="correct">green</span> = correct, <span class="close">yellow</span> = close, <span class="wrong">red</span> = wrong.</li>
+                <li>For age, an arrow shows whether the real player is older ⬆️ or younger ⬇️.</li>
+                <li>Pick a difficulty — more attempts on Easy, fewer as it gets harder.</li>
+                <li>🔥 <strong>Daily Challenge</strong> gives everyone the same mystery player once a day.</li>
+                <li>💡 Use one free <strong>Hint</strong> per game if you're stuck.</li>
+                <li>📋 <strong>Share</strong> your results as an emoji grid once the game ends.</li>
+                <li>🏆 Unlock <strong>Achievements</strong> for special ways of winning.</li>
+            </ul>
+
+        </div>
+
+    </div>
+
+    <!-- ========================= -->
+    <!-- DAILY STATUS MODAL -->
+    <!-- ========================= -->
+
+    <div id="dailyStatusModal" class="modal-overlay" onclick="closeDailyStatusModal(event)">
+
+        <div class="modal-box daily-status-box">
+
+            <button class="modal-close" onclick="closeDailyStatusModal(event)">✕</button>
+
+            <div id="dailyStatusIcon" class="daily-status-icon">🔥</div>
+
+            <h2 id="dailyStatusTitle">DAILY CHALLENGE</h2>
+
+            <p id="dailyStatusMessage" class="daily-status-message"></p>
+
+            <button class="main-button daily-status-ok" onclick="closeDailyStatusModal(event)">
+                GOT IT
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- SETTINGS MODAL -->
+    <!-- ========================= -->
+
+    <div id="settingsModal" class="modal-overlay" onclick="closeSettingsModal(event)">
+
+        <div class="modal-box settings-box">
+
+            <button class="modal-close" onclick="closeSettingsModal(event)">✕</button>
+
+            <h2>⚙️ SETTINGS</h2>
+
+            <div class="settings-section">
+
+                <h3 class="settings-section-title">SOUND</h3>
+
+                <div class="settings-group" data-accent="blue">
+
+                    <div class="settings-row">
+                        <div class="settings-row-label">
+                            <span class="settings-row-icon">🎵</span>
+                            <span>Music</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="bgmToggle" onchange="toggleBgm(this.checked)">
+                            <span class="switch-track"></span>
+                        </label>
+                    </div>
+
+                    <input type="range" id="bgmVolumeSlider" class="settings-slider"
+                           min="0" max="100" value="35"
+                           oninput="setBgmVolume(this.value)"
+                           aria-label="Music volume">
+
+                </div>
+
+                <div class="settings-group" data-accent="green">
+
+                    <div class="settings-row">
+                        <div class="settings-row-label">
+                            <span class="settings-row-icon">🔔</span>
+                            <span>Sound Effects</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="sfxToggle" onchange="toggleSfx(this.checked)">
+                            <span class="switch-track"></span>
+                        </label>
+                    </div>
+
+                    <input type="range" id="sfxVolumeSlider" class="settings-slider"
+                           min="0" max="100" value="80"
+                           oninput="setSfxVolume(this.value)"
+                           aria-label="Sound effects volume">
+
+                </div>
+
+            </div>
+
+            <div class="settings-section">
+
+                <h3 class="settings-section-title">OTHER</h3>
+
+                <div class="settings-group" data-accent="purple" id="hapticsGroup">
+
+                    <div class="settings-row">
+                        <div class="settings-row-label">
+                            <span class="settings-row-icon">📳</span>
+                            <span>Vibration</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="hapticsToggle" onchange="toggleHaptics(this.checked)">
+                            <span class="switch-track"></span>
+                        </label>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="settings-section settings-danger">
+
+                <button id="resetProgressButton" class="secondary-button settings-reset-button" onclick="handleResetProgressClick()">
+                    🗑️ RESET PROGRESS
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- MAIN MENU -->
+    <!-- ========================= -->
+
+    <div id="menuScreen" class="screen active">
+
+        <div class="menu-content">
+
+            <div class="football-icon">⚽</div>
+
+            <h1>FOOTDLE</h1>
+
+            <p class="tagline">
+                THE ULTIMATE FOOTBALL GUESSING GAME
+            </p>
+
+            <button class="main-button" onclick="showDifficulty()">
+                🎮 SINGLE PLAYER
+            </button>
+
+            <button class="main-button multiplayer-button" onclick="showMultiplayerMenu()">
+                👥 MULTIPLAYER
+            </button>
+
+            <button class="secondary-button daily-button" onclick="startDaily()">
+                🔥 DAILY CHALLENGE
+            </button>
+
+            <div id="dailyStatus" class="daily-status"></div>
+
+            <button class="secondary-button" onclick="showStats()">
+                📊 STATS
+            </button>
+
+            <button class="secondary-button" onclick="openHowToPlay()">
+                ❓ HOW TO PLAY
+            </button>
+
+            <div class="menu-footer">
+                Guess the player. Master the game.
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- DIFFICULTY SCREEN -->
+    <!-- ========================= -->
+
+    <div id="difficultyScreen" class="screen">
+
+        <div class="difficulty-content">
+
+            <h2>SELECT DIFFICULTY</h2>
+
+            <p class="difficulty-subtitle">
+                How good is your football knowledge?
+            </p>
+
+
+            <div class="difficulty-container">
+
+                <button class="difficulty-card easy"
+                        onclick="startGame('easy')">
+
+                    <span class="difficulty-icon">🟢</span>
+
+                    <h3>EASY</h3>
+
+                    <p>
+                        Famous footballers
+                    </p>
+
+                    <small>
+                        7 attempts
+                    </small>
+
+                </button>
+
+
+                <button class="difficulty-card medium"
+                        onclick="startGame('medium')">
+
+                    <span class="difficulty-icon">🟡</span>
+
+                    <h3>MEDIUM</h3>
+
+                    <p>
+                        Famous & less obvious players
+                    </p>
+
+                    <small>
+                        5 attempts
+                    </small>
+
+                </button>
+
+
+                <button class="difficulty-card hard"
+                        onclick="startGame('hard')">
+
+                    <span class="difficulty-icon">🔴</span>
+
+                    <h3>HARD</h3>
+
+                    <p>
+                        Serious football knowledge
+                    </p>
+
+                    <small>
+                        3 attempts
+                    </small>
+
+                </button>
+
+                <button class="difficulty-card legends"
+                        onclick="startGame('legends')">
+
+                    <span class="difficulty-icon">🟣</span>
+
+                    <h3>LEGENDS</h3>
+
+                    <p>
+                        Retired icons & GOATs
+                    </p>
+
+                    <small>
+                        4 attempts
+                    </small>
+
+                </button>
+
+            </div>
+
+
+            <button class="back-button" onclick="backToMenu()">
+                ← BACK
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- MULTIPLAYER MENU -->
+    <!-- ========================= -->
+
+    <div id="multiplayerScreen" class="screen">
+
+        <div class="difficulty-content">
+
+            <h2>👥 MULTIPLAYER</h2>
+
+            <p class="difficulty-subtitle">
+                Race a friend to guess the mystery footballer first
+            </p>
+
+            <div class="mp-menu-buttons">
+
+                <button class="main-button" onclick="showCreateParty()">
+                    🎉 CREATE PARTY
+                </button>
+
+                <button class="main-button mp-join-button" onclick="showJoinParty()">
+                    🔑 JOIN PARTY
+                </button>
+
+            </div>
+
+            <button class="back-button" onclick="backToMenu()">
+                ← BACK
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- CREATE PARTY -->
+    <!-- ========================= -->
+
+    <div id="createPartyScreen" class="screen">
+
+        <div class="difficulty-content">
+
+            <h2>🎉 CREATE PARTY</h2>
+
+            <p class="difficulty-subtitle">
+                Set up the room for your party
+            </p>
+
+            <div class="mp-form">
+
+                <label class="mp-label">DIFFICULTY</label>
+
+                <div class="mp-difficulty-row">
+                    <button type="button" class="mp-pill active" data-difficulty="easy" onclick="selectPartyDifficulty('easy', this)">🟢 Easy</button>
+                    <button type="button" class="mp-pill" data-difficulty="medium" onclick="selectPartyDifficulty('medium', this)">🟡 Medium</button>
+                    <button type="button" class="mp-pill" data-difficulty="hard" onclick="selectPartyDifficulty('hard', this)">🔴 Hard</button>
+                    <button type="button" class="mp-pill" data-difficulty="legends" onclick="selectPartyDifficulty('legends', this)">🟣 Legends</button>
+                </div>
+
+                <label class="mp-label" for="partyRounds">ROUNDS</label>
+
+                <input type="number" id="partyRounds" class="mp-input" min="1" max="15" value="5">
+                
+                <label class="mp-label">HINTS (per player, per round)</label>
+
+                <div class="mp-difficulty-row" id="mpHintsRow">
+                    <button type="button" class="mp-pill active" data-hints="0" onclick="selectPartyHints(0, this)">🚫 Off</button>
+                    <button type="button" class="mp-pill" data-hints="1" onclick="selectPartyHints(1, this)">1</button>
+                    <button type="button" class="mp-pill" data-hints="2" onclick="selectPartyHints(2, this)">2</button>
+                    <button type="button" class="mp-pill" data-hints="3" onclick="selectPartyHints(3, this)">3</button>
+                </div>
+
+                <label class="mp-label">PRIVACY</label>
+
+                <div class="mp-difficulty-row">
+                    <button type="button" id="publicPill" class="mp-pill active" onclick="setPartyPrivacy(false)">🌐 Public</button>
+                    <button type="button" id="privatePill" class="mp-pill" onclick="setPartyPrivacy(true)">🔒 Private</button>
+                </div>
+
+                <input type="text" id="partyPassword" class="mp-input" placeholder="Party password" style="display:none;" maxlength="20">
+
+                <button class="main-button" onclick="createParty()">
+                    CREATE PARTY
+                </button>
+
+                <div id="createPartyError" class="mp-error"></div>
+
+            </div>
+
+            <button class="back-button" onclick="backToMultiplayerMenu()">
+                ← BACK
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- JOIN PARTY -->
+    <!-- ========================= -->
+
+    <div id="joinPartyScreen" class="screen">
+
+        <div class="difficulty-content">
+
+            <h2>🔑 JOIN PARTY</h2>
+
+            <p class="difficulty-subtitle">
+                Enter the code your friend shared with you
+            </p>
+
+            <div class="mp-form">
+
+                <label class="mp-label" for="joinPartyCode">PARTY CODE</label>
+
+                <input type="text" id="joinPartyCode" class="mp-input mp-code-input" placeholder="ABCDE" maxlength="5" autocomplete="off">
+
+                <label class="mp-label" for="joinPartyPassword">PASSWORD (if private)</label>
+
+                <input type="text" id="joinPartyPassword" class="mp-input" placeholder="Leave blank if public" maxlength="20">
+
+                <button id="joinPartyButton" class="main-button" onclick="joinParty()">
+                    JOIN
+                </button>
+
+                <div id="joinPartyError" class="mp-error"></div>
+
+            </div>
+
+            <button class="back-button" onclick="backToMultiplayerMenu()">
+                ← BACK
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- PARTY LOBBY -->
+    <!-- ========================= -->
+
+    <div id="partyLobbyScreen" class="screen">
+
+        <div class="difficulty-content">
+
+            <h2>🎉 PARTY LOBBY</h2>
+
+            <div class="party-code-display">
+                <span>CODE</span>
+                <strong id="lobbyPartyCode">-----</strong>
+                <button id="copyCodeButton" class="copy-code-button" onclick="copyPartyCode()">📋 COPY</button>
+            </div>
+
+            <p class="difficulty-subtitle" id="lobbySettingsSummary"></p>
+
+            <div id="lobbyPlayerList" class="lobby-player-list"></div>
+
+            <button id="startPartyButton" class="main-button" onclick="startParty()" style="display:none;">
+                ▶ START GAME
+            </button>
+
+            <p id="lobbyWaitingText" class="difficulty-subtitle"></p>
+
+            <button class="back-button" onclick="leaveParty()">
+                ← LEAVE PARTY
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- GAME SCREEN -->
+    <!-- ========================= -->
+
+    <div id="gameScreen" class="screen">
+
+        <div class="game-container">
+
+            <div class="game-header">
+
+                <button class="back-small" onclick="backToMenu()">
+                    ← MENU
+                </button>
+
+                <div>
+                    <span id="difficultyLabel">EASY</span>
+                </div>
+
+                <div class="attempt-counter">
+                    <span id="attemptsLeft">5</span>
+                    attempts left
+                </div>
+
+            </div>
+
+            <div id="mpRoundInfo" class="mp-round-info" style="display:none;"></div>
+
+            <div id="opponentsPanel" class="opponents-panel" style="display:none;"></div>
+
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill"></div>
+            </div>
+
+
+            <div class="game-title">
+
+                <div class="small-ball">⚽</div>
+
+                <h1>WHO IS THE PLAYER?</h1>
+
+                <p>
+                    Guess the mystery footballer
+                </p>
+
+            </div>
+
+
+            <!-- SEARCH -->
+
+            <div class="search-area">
+
+                <div class="search-box">
+
+                    <input
+                        type="text"
+                        id="playerInput"
+                        placeholder="Search for a footballer..."
+                        autocomplete="off"
+                    >
+
+                    <button onclick="guessPlayer()">
+                        GUESS
+                    </button>
+
+                </div>
+
+                <div id="suggestions"></div>
+
+                <div class="game-actions">
+
+                    <button id="hintButton" class="action-button hint" onclick="useHint()">
+                        💡 HINT
+                    </button>
+
+                    <button class="action-button giveup" onclick="giveUp()">
+                        🏳️ GIVE UP
+                    </button>
+
+                    <button id="shareButton" class="action-button share" onclick="shareResults()" style="display:none;">
+                        📋 SHARE RESULTS
+                    </button>
+
+                </div>
+
+                <div id="hintText" class="hint-text"></div>
+
+            </div>
+
+
+            <!-- CLUE HEADERS -->
+
+            <div id="clueHeaders" class="clue-headers">
+
+                <div>PLAYER</div>
+                <div>COUNTRY</div>
+                <div>CLUB</div>
+                <div>LEAGUE</div>
+                <div>POSITION</div>
+                <div>AGE</div>
+                <div>FOOT</div>
+
+            </div>
+
+
+            <!-- GUESSES -->
+
+            <div id="guesses"></div>
+
+
+            <div id="message"></div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- MULTIPLAYER ROUND END / GAME OVER -->
+    <!-- ========================= -->
+
+    <div id="mpRoundEndOverlay" class="mp-overlay">
+
+        <div class="mp-overlay-box">
+
+            <h2 id="mpRoundEndTitle">Round Over</h2>
+
+            <p id="mpRoundEndSubtitle"></p>
+
+            <div id="mpRoundEndScoreboard" class="mp-scoreboard"></div>
+
+            <p id="mpRoundEndNextText" class="difficulty-subtitle"></p>
+
+        </div>
+
+    </div>
+
+    <div id="mpGameOverOverlay" class="mp-overlay">
+
+        <div class="mp-overlay-box">
+
+            <h2 id="mpGameOverTitle">🏆 PARTY RESULTS</h2>
+
+            <div id="mpFinalScoreboard" class="mp-scoreboard"></div>
+
+            <button id="mpGameOverBackButton" class="main-button" onclick="closeMpGameOver()">
+                BACK TO MENU
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- STATS SCREEN -->
+    <!-- ========================= -->
+
+    <div id="statsScreen" class="screen">
+
+        <div class="stats-content">
+
+            <h2>📊 YOUR STATS</h2>
+
+            <div class="stats-grid">
+
+                <div class="stat-card">
+                    <strong id="gamesPlayed">0</strong>
+                    <span>Games</span>
+                </div>
+
+                <div class="stat-card">
+                    <strong id="gamesWon">0</strong>
+                    <span>Wins</span>
+                </div>
+
+                <div class="stat-card">
+                    <strong id="winRate">0%</strong>
+                    <span>Win Rate</span>
+                </div>
+
+                <div class="stat-card">
+                    <strong id="currentStreak">0</strong>
+                    <span>Streak</span>
+                </div>
+
+                <div class="stat-card">
+                    <strong id="dailyStreak">0</strong>
+                    <span>Daily Streak</span>
+                </div>
+
+            </div>
+
+            <h3 class="achievements-title">🏆 ACHIEVEMENTS</h3>
+
+            <div id="achievementsGrid" class="achievements-grid"></div>
+
+            <button class="back-button" onclick="backToMenu()">
+                ← BACK
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <script src="script.js"></script>
+    <script src="multiplayer.js"></script>
+
+</body>
+</html>
